@@ -2,10 +2,17 @@
 
 - [Student Information](#student-information)
 - [Files Structure](#files-structure)
-- [How to run](#how-to-run)
 - [Task 1 - Dataset](#task-1---dataset)
 - [Task 2 - Model Training](#task-2---model-training)
-- [Evaluation](#evaluation)
+    - [Data Preprocessing](#data-preprocessing)
+    - [Model Architecture](#model-architecture)
+    - [Training Process](#training-process)
+    - [Hyperparameters](#hyperparameters)
+- [Task 3 - Web Application](#task-3---web-application)
+    - [How to run](#how-to-run)
+    - [Usage](#usage)
+    - [Documentation](#documentation)
+- [Result](#result)
 
 ## Student Information
  - Name: Myo Thiha
@@ -14,15 +21,10 @@
 ## Files Structure
  - In the code folder, The Jupytor notebook files (training) can be located.
  - The 'app' folder include 
- -- `app.py` file for the web application
- -- Dockerfile and docker-compose.yaml for containerization of the application.
- -- `template` folder to hold the HTML pages.
- -- `models` folder which contains four model exports and their metadata files.
-
-## How to run
- - Run the `docker compose up` in the app folder.
- - Then, the application can be accessed on http://localhost:8000
- - You will directly land on the "Search" page.
+    - `app.py` file for the entry point of the web application
+    - Dockerfile and docker-compose.yaml for containerization of the application.
+    - `template` folder to hold the HTML pages.
+    - `models` folder which contains LSTM model exports and its metadata file.
 
 ## Task 1 - Dataset
 - Source: https://www.kaggle.com/datasets/thedevastator/short-jokes-dataset
@@ -96,10 +98,64 @@ The Joke Generation Language Model is built using PyTorch and consists of the fo
 - `dropout_rate`: Dropout probability.
 - `lr`: Learning rate.
 
- ## Evaluation
-The language model was evaluated using perplexity scores on different datasets. Perplexity is a measure of how well the model predicts the data.
+## Task 3 - Web Application
+
+### How to run?
+ - Run the `docker compose up` in the app folder.
+ - Then, the application can be accessed on http://localhost:8000
+ - You will directly land on the "Search" page.
+
+### Usage:
+- Input: After you run the web app, there will be a textbox where you can type your prompt. However, the prompt should not contain a period such as '.' and '?'. In most cases, the model will think it is a complete sentence and generate nothing but a sequence of full stops or question marks.
+- Output: after that, you can hit the 'generate' button and you will see the generated result below.
+
+### Documentation:
+
+#### Model Loading:
+- The web application loads the language model from the exported state dictionary file (`best-val-lstm_lm.pt`).
+- Model parameters and vocabulary are loaded from the metadata file (`meta.pkl`).
+
+#### Tokenizer:
+- The `basic_english` tokenizer from `torchtext` is used for processing text inputs.
+
+#### Integration Steps:
+
+1. **Loading Model and Metadata:**
+    - The `LSTMLanguageModel` class is instantiated with parameters loaded from the metadata file.
+    - The model is moved to the appropriate device (CPU or GPU).
+    - State dictionary is loaded into the model.
+
+    ```python
+    model = LSTMLanguageModel(**args).to(device)
+    model.load_state_dict(torch.load('models/best-val-lstm_lm.pt', map_location=device))
+    ```
+
+2. **Loading Vocabulary:**
+    - Vocabulary is built using the tokenized data from the training set in the metadata file.
+
+    ```python
+    vocab = meta['vocab']
+    ```
+
+3. **Flask Integration:**
+    - Flask routes (`/` and `/search`) are defined to handle user interaction and text generation.
+    - User input is taken from the form, and the `generate` function is called for text generation.
+
+    ```python
+    prompt = request.form['query'].strip()
+    generation = generate(prompt, max_seq_len, temperature, model, tokenizer, vocab, device)
+    ```
+
+4. **Result Rendering:**
+    - The generated text is then rendered on the web page using the Flask template.
+
+    ```python
+    return render_template('index.html', result=generation, old_query=prompt)
+    ```
 
 ## Result
+
+The language model was evaluated using perplexity scores on different datasets. Perplexity is a measure of how well the model predicts the data.
 
 - **Train Perplexity:** 42.071
   - The perplexity score on the training dataset.

@@ -19,12 +19,12 @@ tokenizer = torchtext.data.utils.get_tokenizer('basic_english')
 
 @app.route('/', methods=['GET'])
 def index():
-    # return '<h1>Hello from Flask & Docker</h2>'
     return render_template("index.html")
 
 @app.route('/generate', methods=['POST'])
 def generate_jokes():
 
+    # get prompt from HTML form.
     prompt = request.form['query'].strip()
 
     max_seq_len = 30
@@ -32,7 +32,7 @@ def generate_jokes():
 
     #smaller the temperature, more diverse tokens but comes 
     #with a tradeoff of less-make-sense sentence
-    temperature = 0.5
+    temperature = 0.8 # generate response with slightly creativity.
     generation = generate(prompt, max_seq_len, temperature, model, tokenizer, 
                         vocab, device)
 

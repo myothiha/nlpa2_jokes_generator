@@ -103,7 +103,7 @@ The Joke Generation Language Model is built using PyTorch and consists of the fo
 ### How to run?
  - Run the `docker compose up` in the app folder.
  - Then, the application can be accessed on http://localhost:8000
- - You will directly land on the "Search" page.
+ - You will directly land on the "Home" page.
 
 ### Usage:
 - Input: After you run the web app, there will be a textbox where you can type your prompt. However, the prompt should not contain a period such as '.' and '?'. In most cases, the model will think it is a complete sentence and generate nothing but a sequence of full stops or question marks.
@@ -138,7 +138,7 @@ The Joke Generation Language Model is built using PyTorch and consists of the fo
     ```
 
 3. **Flask Integration:**
-    - Flask routes (`/` and `/search`) are defined to handle user interaction and text generation.
+    - Flask routes (`/` and `/generate`) are defined to handle user interaction and text generation.
     - User input is taken from the form, and the `generate` function is called for text generation.
 
     ```python

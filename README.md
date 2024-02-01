@@ -1,9 +1,10 @@
-# NLP Assignment 1 (AIT - DSAI)
+# NLP Assignment 2 (AIT - DSAI)
 
 - [Student Information](#student-information)
 - [Files Structure](#files-structure)
 - [How to run](#how-to-run)
-- [Dataset](#dataset)
+- [Task 1 - Dataset](#task-1---dataset)
+- [Task 2 - Model Training](#task-2---model-training)
 - [Evaluation](#evaluation)
 
 ## Student Information
@@ -23,14 +24,92 @@
  - Then, the application can be accessed on http://localhost:8000
  - You will directly land on the "Search" page.
 
-## Dataset
-- I used `brown` dataset (category 'News') from `nltk`.
+## Task 1 - Dataset
+- Source: https://www.kaggle.com/datasets/thedevastator/short-jokes-dataset
+- The dataset is a csv file containing a collections of 231,657 short jokes.
+- Then, I split it into training, validation and testing sets: 187641, 20850 and 23166 records respectively.
+
+## Task 2 - Model Training
+
+### Data Preprocessing
+
+#### Tokenizing
+
+- The text data is tokenized using the `torchtext` library's basic English tokenizer.
+- The `tokenize_data` function is applied to tokenize the text in the dataset, and the result is stored in a new field named 'tokens'.
+- The entire dataset is tokenized using the `map` function, and the 'text' field is removed, keeping only the 'tokens' field.
+- The tokenized dataset is stored in the variable `tokenized_dataset`.
+
+#### Numericalizing
+
+- A vocabulary is built from the tokenized data using `torchtext.vocab.build_vocab_from_iterator`.
+- The minimum frequency for a token to be included in the vocabulary is set to 3.
+- Special tokens `<unk>` (unknown) and `<eos>` (end of sequence) are inserted into the vocabulary at indices 0 and 1, respectively.
+- The default index for the vocabulary is set to the index of the `<unk>` token.
+- The resulting vocabulary is stored in the variable `vocab`.
+
+### Model Architecture
+The Joke Generation Language Model is built using PyTorch and consists of the following components:
+
+1. **Embedding Layer:**
+   - Input: Word indices
+   - Output: Word embeddings of dimension `emb_dim`
+   - Implemented using `nn.Embedding`
+
+2. **LSTM Layer:**
+   - Input: Word embeddings
+   - Output: Hidden states for each time step
+   - Implemented using `nn.LSTM` with `num_layers` LSTM layers, each having `emb_dim` input features and producing `hid_dim` output features. `batch_first=True` is used.
+
+3. **Dropout Layer:**
+   - Applied after the embedding layer and LSTM layer
+   - Implemented using `nn.Dropout`
+
+4. **Linear Layer:**
+   - Input: Hidden states from LSTM layer after dropout
+   - Output: Scores for each word in the vocabulary
+   - Implemented using `nn.Linear`
+
+5. **Initialization:**
+   - Weights of embedding layer and linear layer are initialized with uniform values.
+   - LSTM weights are initialized similarly for input-to-hidden and hidden-to-hidden connections.
+
+6. **Hidden State Initialization:**
+   - `init_hidden` method initializes the hidden state and cell state for the LSTM.
+
+7. **Forward Method:**
+   - Takes an input sequence (`src`) and initial hidden state.
+   - Embeds the input sequence, passes through LSTM, applies dropout, and passes through linear layer.
+   - Returns output scores and updated hidden state.
+
+### Training Process
+- Adam optimizer with learning rate (`lr`).
+- CrossEntropyLoss used as the loss function.
+- Total trainable parameters printed.
+
+### Hyperparameters:
+
+- `vocab_size`: Size of the vocabulary.
+- `emb_dim`: Dimensionality of word embeddings.
+- `hid_dim`: Number of features in LSTM hidden state.
+- `num_layers`: Number of LSTM layers.
+- `dropout_rate`: Dropout probability.
+- `lr`: Learning rate.
 
  ## Evaluation
+The language model was evaluated using perplexity scores on different datasets. Perplexity is a measure of how well the model predicts the data.
 
-| Model             | Window Size | Training Loss | Training Time | Semantic Accuracy | Syntactic Accuracy | Similarity (Correlation Score) |
-|-------------------|-------------|---------------|---------------|--------------------|-------------------|-------------------|
-| Skipgram          | 2     | 10.16       | 0 min 03 sec       | 0.00%            | 0.00%           | 0.08   |
-| Skipgram (NEG)    | 2     | 2.61       | 0 min 04 sec       | 0.00%            | 0.00%           | 0.22   |
-| Glove             | 2     | 44.37       | 0 min 42 sec       | 0.00%            | 0.00%           | -0.02   |
-| Glove (Gensim)    | - | -       | -       | 45.89%            | 50.61%           | 0.54   |
+## Result
+
+- **Train Perplexity:** 42.071
+  - The perplexity score on the training dataset.
+
+- **Valid Perplexity:** 49.605
+  - The perplexity score on the validation dataset.
+
+- **Test Perplexity:** 49.457
+  - The perplexity score on the test dataset.
+
+Lower perplexity scores indicate better performance, with the model making more accurate predictions on the given datasets.
+
+These scores provide an insight into the language model's ability to understand and generate text, with lower perplexity values indicating better performance.
